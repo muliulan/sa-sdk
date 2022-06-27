@@ -8,6 +8,9 @@ buildscript {
             url 'https://maven.google.com'
         }
         maven {
+            url 'https://jitpack.io'
+        }
+        maven {
             url '../repo'
         }
         google()
@@ -31,6 +34,9 @@ allprojects {
         }
         maven {
             url '../repo'
+        }
+        maven {
+            url 'https://jitpack.io'
         }
     }
 }
