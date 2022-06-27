@@ -1197,7 +1197,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
         }
         return enterDb;
     }
-
+    //神策上传参数拼接[ mll ]
     private void trackEventInternal(final EventType eventType, final String eventName, final JSONObject properties, final JSONObject sendProperties, JSONObject identities,
                                     String distinctId, String loginId, final String originalDistinctId, final EventTimer eventTimer) throws JSONException, InvalidDataException {
         String libDetail = null;

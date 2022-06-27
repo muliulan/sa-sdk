@@ -406,7 +406,6 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
      * 指定 Activity/Fragment 的格式为：****.class
      *
      * @param ignoreList activity/Fragment 列表
-     *
      * @return SAConfigOptions
      */
     public SAConfigOptions ignorePageLeave(List<Class<?>> ignoreList) {
@@ -487,5 +486,23 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
     public SAConfigOptions enableSession(boolean enableSession) {
         this.mEnableSession = enableSession;
         return this;
+    }
+
+    private NetWork mNetwork;
+
+    /**
+     * 自定义网络请求
+     */
+    public void setCustomNetWorkListener(NetWork network) {
+        this.mNetwork = network;
+    }
+
+    public NetWork getCustomNetWork() {
+        return mNetwork;
+    }
+
+
+    public interface NetWork {
+        void onCustomNetWork(String json);
     }
 }

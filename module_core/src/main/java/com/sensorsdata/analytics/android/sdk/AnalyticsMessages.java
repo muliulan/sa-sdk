@@ -136,17 +136,14 @@ class AnalyticsMessages {
 
                 if (mSensorsDataAPI.isDebugMode() || ret ==
                         DbParams.DB_OUT_OF_MEMORY_ERROR) {
-                                       Log.e("mll", "handler 立即发消息");
                     mWorker.runMessage(m);
                 } else {
                     // track_signup 立即发送
                     if (type.equals("track_signup") || ret > mSensorsDataAPI
                             .getFlushBulkSize()) {
-                                     Log.e("mll", "handler 立即发消息");
                         mWorker.runMessage(m);
                     } else {
                         final int interval = mSensorsDataAPI.getFlushInterval();
-                                                Log.e("mll", "handler 延迟" + interval / 1000 + " 发消息");
                         mWorker.runMessageOnce(m, interval);
                     }
                 }
@@ -296,7 +293,14 @@ class AnalyticsMessages {
     }
 
     private void sendHttpRequest(String path, String data, String gzip, String rawMessage, boolean isRedirects) throws ConnectErrorException, ResponseErrorException {
-                Log.e("mll", "网络请求参数 原始数据" + rawMessage);
+
+        //自定义数据上报
+        SAConfigOptions configOptions = SensorsDataAPI.getConfigOptions();
+        SAConfigOptions.NetWork customNetWork = configOptions.getCustomNetWork();
+        if (customNetWork != null) {
+            customNetWork.onCustomNetWork(rawMessage);
+            return;
+        }
 
         HttpURLConnection connection = null;
         InputStream in = null;
