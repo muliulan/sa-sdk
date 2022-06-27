@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+apply from: "../script_config/maven.gradle"
+
+version = rootProject.ext.versions.sdk_version
+
+android {
+    compileSdkVersion rootProject.ext.buildConfig.compileSdkVersion
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.buildConfig.minSdkVersion
+        targetSdkVersion rootProject.ext.buildConfig.targetSdkVersion
+        versionCode rootProject.ext.buildConfig.versionCode
+        versionName rootProject.ext.buildConfig.versionName
+        consumerProguardFiles 'proguard-rules.pro'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    testOptions {
+        unitTests.all {
+            testLogging {
+                events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+                outputs.upToDateWhen { false }
+                showStandardStreams = true
+            }
+        }
+        unitTests.includeAndroidResources = true
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    api project(':module_core')
+    api project(':module_advert')
+}

@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+//添加 com.sensorsdata.analytics.android 插件
+apply plugin: 'com.sensorsdata.analytics.android'
+
+android {
+    compileSdkVersion rootProject.ext.buildConfig.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.sensorsdata.analytics.android.demo"
+        minSdkVersion rootProject.ext.buildConfig.minSdkVersion
+        targetSdkVersion rootProject.ext.buildConfig.targetSdkVersion
+        versionCode rootProject.ext.buildConfig.versionCode
+        versionName rootProject.ext.buildConfig.versionName
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    dataBinding {
+        enabled true
+    }
+
+//    sensorsAnalytics {
+//        debug = true
+//    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['.jar', '.so'], dir: 'libs')
+    implementation rootProject.ext.androidx.appcompat
+    implementation rootProject.ext.androidx.google_material
+    implementation rootProject.ext.androidx.constraintlayout
+    implementation project(':module_core')
+    implementation project(':module_advert')
+}

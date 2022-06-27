@@ -1,0 +1,1 @@
+include ':module_core', ':demo', ':module_advert', ':SensorsAnalyticsSDK'
