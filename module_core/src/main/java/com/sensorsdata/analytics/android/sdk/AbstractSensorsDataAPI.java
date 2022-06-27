@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 
 import com.sensorsdata.analytics.android.sdk.aop.push.PushLifecycleCallbacks;
@@ -413,7 +414,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
     /**
      * SDK 内部用来调用触发事件
      *
-     * @param eventName 事件名称
+     * @param eventName  事件名称
      * @param properties 事件属性
      */
     public void trackInternal(final String eventName, final JSONObject properties) {
@@ -423,9 +424,9 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
     /**
      * SDK 内部用来调用触发事件
      *
-     * @param eventName 事件名称
+     * @param eventName  事件名称
      * @param properties 事件属性
-     * @param viewNode ViewTree 中的 View 节点
+     * @param viewNode   ViewTree 中的 View 节点
      */
     public void trackInternal(final String eventName, final JSONObject properties, final ViewNode viewNode) {
         mTrackTaskManager.addTrackEventTask(new Runnable() {
@@ -540,7 +541,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
     /**
      * SDK 内部调用方法
      *
-     * @param eventName 事件名
+     * @param eventName  事件名
      * @param properties 事件属性
      */
     public void trackAutoEvent(final String eventName, final JSONObject properties) {
@@ -550,7 +551,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
     /**
      * SDK 全埋点调用方法，支持可视化自定义属性
      *
-     * @param eventName 事件名
+     * @param eventName  事件名
      * @param properties 事件属性
      */
     void trackAutoEvent(final String eventName, final JSONObject properties, final ViewNode viewNode) {
@@ -1079,7 +1080,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
      * 触发事件的暂停/恢复
      *
      * @param eventName 事件名称
-     * @param isPause 设置是否暂停
+     * @param isPause   设置是否暂停
      */
     protected void trackTimerState(final String eventName, final boolean isPause) {
         final long startTime = SystemClock.elapsedRealtime();
@@ -1122,7 +1123,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
     /**
      * 合并、去重静态公共属性与动态公共属性
      *
-     * @param eventProperty 保存合并后属性的 JSON
+     * @param eventProperty   保存合并后属性的 JSON
      * @param dynamicProperty 动态公共属性
      */
     private void mergerDynamicAndSuperProperties(JSONObject eventProperty, JSONObject dynamicProperty) {
@@ -1165,7 +1166,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
     }
 
     /**
-     * @param eventName 事件名
+     * @param eventName       事件名
      * @param eventProperties 事件属性
      * @return 该事件是否入库
      */
@@ -1197,6 +1198,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
         }
         return enterDb;
     }
+
     //神策上传参数拼接[ mll ]
     private void trackEventInternal(final EventType eventType, final String eventName, final JSONObject properties, final JSONObject sendProperties, JSONObject identities,
                                     String distinctId, String loginId, final String originalDistinctId, final EventTimer eventTimer) throws JSONException, InvalidDataException {
@@ -1461,7 +1463,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
         } catch (Exception e) {
             SALog.printStackTrace(e);
         }
-
+        SALog.i("pop-sa", "拼接参数");
         mMessages.enqueueEventMessage(eventType.getEventType(), dataObj);
         if ("$AppStart".equals(eventName)) {
             mSAContextManager.setAppStartSuccess(true);
