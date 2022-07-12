@@ -391,7 +391,7 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
     /**
      * 是否开启页面停留时长
      *
-     * @param isTrackPageLeave 是否开启页面停留时长
+     * @param isTrackPageLeave         是否开启页面停留时长
      * @param isTrackFragmentPageLeave 是否采集 Fragment 页面停留时长，需开启页面停留时长采集
      * @return SAConfigOptions
      */
@@ -488,8 +488,20 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
         return this;
     }
 
-    private NetWork mNetwork;
 
+    /**
+     * 是否执行神策的网络上传
+     */
+    private boolean isSaHttp = true;
+
+    public void setIsSaHttp(boolean isSaHttp) {
+        this.isSaHttp = isSaHttp;
+    }
+    public boolean getIsSaHttp(){
+        return isSaHttp;
+    }
+
+    private NetWork mNetwork;
     /**
      * 自定义网络请求
      */
@@ -500,7 +512,6 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
     public NetWork getCustomNetWork() {
         return mNetwork;
     }
-
 
     public interface NetWork {
         void onCustomNetWork(String json);

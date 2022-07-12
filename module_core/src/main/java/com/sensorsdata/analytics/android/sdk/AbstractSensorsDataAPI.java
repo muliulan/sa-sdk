@@ -651,7 +651,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
                 eventProperties.put("project", eventProject);
             }
             mMessages.enqueueEventMessage(eventType, eventProperties);
-            SALog.i(TAG, "track event:\n" + JSONUtils.formatJson(eventProperties.toString()));
+            SALog.i(TAG, "track event1:\n" + JSONUtils.formatJson(eventProperties.toString()));
         } catch (Exception ex) {
             SALog.printStackTrace(ex);
         }
@@ -932,7 +932,7 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
                     if (mUserIdentityAPI.mergeH5Identities(eventType, eventObject)) {
                         mMessages.enqueueEventMessage(type, eventObject);
                         if (SALog.isLogEnabled()) {
-                            SALog.i(TAG, "track event:\n" + JSONUtils.formatJson(eventObject.toString()));
+                            SALog.i(TAG, "track event2:\n" + JSONUtils.formatJson(eventObject.toString()));
                         }
                     }
                 }
@@ -1463,13 +1463,13 @@ abstract class AbstractSensorsDataAPI implements ISensorsDataAPI {
         } catch (Exception e) {
             SALog.printStackTrace(e);
         }
-        SALog.i("pop-sa", "拼接参数");
+        SALog.i("mll-sa", "拼接参数");
         mMessages.enqueueEventMessage(eventType.getEventType(), dataObj);
         if ("$AppStart".equals(eventName)) {
             mSAContextManager.setAppStartSuccess(true);
         }
         if (SALog.isLogEnabled()) {
-            SALog.i(TAG, "track event:\n" + JSONUtils.formatJson(dataObj.toString()));
+            SALog.i(TAG, "track event3:\n" + JSONUtils.formatJson(dataObj.toString()));
         }
     }
 

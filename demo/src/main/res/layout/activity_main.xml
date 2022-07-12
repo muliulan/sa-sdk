@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <data>
+<!--    <data>-->
 
-        <variable
-            name="handlers"
-            type="com.sensorsdata.analytics.android.demo.MainActivity" />
-    </data>
+<!--        <variable-->
+<!--            name="handlers"-->
+<!--            type="com.sensorsdata.analytics.android.demo.MainActivity" />-->
+<!--    </data>-->
 
     <ScrollView
         android:layout_width="match_parent"
@@ -35,17 +35,9 @@
                 android:id="@+id/androidXButtonDataBinding"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="@{handlers::onViewClick}"
                 android:text="AndroidX DataBinding Button"
                 android:textAllCaps="false" />
 
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/androidXButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:onClick="@{handlers::onViewClick}"
-                android:text="AndroidX Button"
-                android:textAllCaps="false" />
         </LinearLayout>
     </ScrollView>
 </layout>
