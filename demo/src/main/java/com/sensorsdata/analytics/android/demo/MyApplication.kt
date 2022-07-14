@@ -18,9 +18,9 @@ package com.sensorsdata.analytics.android.demo
 
 import android.app.Application
 import com.sensorsdata.analytics.android.sdk.SAConfigOptions
-import com.sensorsdata.analytics.android.demo.MyApplication
 import com.sensorsdata.analytics.android.sdk.SensorsAnalyticsAutoTrackEventType
 import com.sensorsdata.analytics.android.sdk.SensorsDataAPI
+import com.sensorsdata.analytics.android.sdk.pop.HttpDataBean
 
 class MyApplication : Application() {
 
@@ -49,6 +49,17 @@ class MyApplication : Application() {
         )
         // 打开 crash 信息采集
         configOptions.enableTrackAppCrash()
+        configOptions.setCustomNetWorkListener(arrayListOf(object : SAConfigOptions.NetWork {
+            override fun getUrl(): String = "https://sdkdebugtest.datasink.sensorsdata.cn/sa?project=default&token=cfb8b60e42e0ae9b"
+
+            override fun getNewData(data: String?): HttpDataBean =
+                HttpDataBean(HttpDataBean.RequestMethod.POST, true).apply {
+                    json = data
+                }
+
+        }))
+
+
         //传入 SAConfigOptions 对象，初始化神策 SDK
         SensorsDataAPI.startWithConfigOptions(this, configOptions)
     }

@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import com.sensorsdata.analytics.android.sdk.plugin.encrypt.StorePlugin;
 import com.sensorsdata.analytics.android.sdk.encrypt.IPersistentSecretKey;
 import com.sensorsdata.analytics.android.sdk.encrypt.SAEncryptListener;
+import com.sensorsdata.analytics.android.sdk.pop.HttpDataBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -489,31 +490,27 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
     }
 
 
-    /**
-     * 是否执行神策的网络上传
-     */
-    private boolean isSaHttp = true;
+    private ArrayList<NetWork> mListNetWork;
 
-    public void setIsSaHttp(boolean isSaHttp) {
-        this.isSaHttp = isSaHttp;
-    }
-    public boolean getIsSaHttp(){
-        return isSaHttp;
-    }
-
-    private NetWork mNetwork;
     /**
      * 自定义网络请求
      */
-    public void setCustomNetWorkListener(NetWork network) {
-        this.mNetwork = network;
+    public void setCustomNetWorkListener(ArrayList<NetWork> listNetWork) {
+        this.mListNetWork = listNetWork;
     }
 
-    public NetWork getCustomNetWork() {
-        return mNetwork;
+    public ArrayList<NetWork> getCustomNetWork() {
+        return mListNetWork;
     }
 
     public interface NetWork {
-        void onCustomNetWork(String json);
+//        ArrayList<HttpDataBean> onCustomNetWork(String json);
+
+        String getUrl();
+
+        HttpDataBean getNewData(String data);
+
     }
+
+
 }

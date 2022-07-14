@@ -18,15 +18,12 @@
 package com.sensorsdata.analytics.android.sdk;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 
-import com.sensorsdata.analytics.android.sdk.autotrack.ActivityLifecycleCallbacks;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbAdapter;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbParams;
 import com.sensorsdata.analytics.android.sdk.dialog.SensorsDataDialogUtils;
@@ -34,28 +31,20 @@ import com.sensorsdata.analytics.android.sdk.exceptions.ConnectErrorException;
 import com.sensorsdata.analytics.android.sdk.exceptions.DebugModeException;
 import com.sensorsdata.analytics.android.sdk.exceptions.InvalidDataException;
 import com.sensorsdata.analytics.android.sdk.exceptions.ResponseErrorException;
-import com.sensorsdata.analytics.android.sdk.util.Base64Coder;
-import com.sensorsdata.analytics.android.sdk.util.JSONUtils;
+import com.sensorsdata.analytics.android.sdk.pop.FileUtils;
+import com.sensorsdata.analytics.android.sdk.pop.HttpDataBean;
+import com.sensorsdata.analytics.android.sdk.pop.HttpNetWork;
 import com.sensorsdata.analytics.android.sdk.util.NetworkUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
-
-import javax.net.ssl.HttpsURLConnection;
-
-import static com.sensorsdata.analytics.android.sdk.util.Base64Coder.CHARSET_UTF8;
 
 
 /**
@@ -73,6 +62,7 @@ class AnalyticsMessages {
     private final Context mContext;
     private final DbAdapter mDbAdapter;
     private SensorsDataAPI mSensorsDataAPI;
+    private HttpNetWork mHttpNetWork;
 
     /**
      * 不要直接调用，通过 getInstance 方法获取实例
@@ -82,6 +72,7 @@ class AnalyticsMessages {
         mDbAdapter = DbAdapter.getInstance();
         mWorker = new Worker();
         mSensorsDataAPI = sensorsDataAPI;
+        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI);
     }
 
     /**
@@ -103,20 +94,6 @@ class AnalyticsMessages {
         }
     }
 
-    private static byte[] slurp(final InputStream inputStream)
-            throws IOException {
-        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-
-        int nRead;
-        byte[] data = new byte[8192];
-
-        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-
-        buffer.flush();
-        return buffer.toByteArray();
-    }
 
     void enqueueEventMessage(final String type, final JSONObject eventJson) {
         try {
@@ -196,10 +173,10 @@ class AnalyticsMessages {
                 return;
             }
 
-            if (TextUtils.isEmpty(mSensorsDataAPI.getServerUrl())) {
-                SALog.i(TAG, "Server url is null or empty.");
-                return;
-            }
+//            if (TextUtils.isEmpty(mSensorsDataAPI.getServerUrl())) {
+//                SALog.i(TAG, "Server url is null or empty.");
+//                return;
+//            }
 
             //无网络
             if (!NetworkUtils.isNetworkAvailable(mContext)) {
@@ -229,7 +206,6 @@ class AnalyticsMessages {
         }
         int count = 100;
         while (count > 0) {
-            boolean deleteEvents = true;
             String[] eventsData;
             synchronized (mDbAdapter) {
                 if (mSensorsDataAPI.isDebugMode()) {
@@ -251,25 +227,10 @@ class AnalyticsMessages {
             String errorMessage = null;
 
             try {
-                String data = rawMessage;
-                if (DbParams.GZIP_DATA_EVENT.equals(gzip)) {
-                    data = encodeData(rawMessage);
-                }
+                SALog.i("mll-sa", "开始请求");
+                sendHttp(gzip, rawMessage);
 
-                if (!TextUtils.isEmpty(data)) {
-                    SALog.i("mll-sa", "开始请求");
-                    sendHttpRequest(mSensorsDataAPI.getServerUrl(), data, gzip, rawMessage, false);
-                }
-            } catch (ConnectErrorException e) {
-                deleteEvents = false;
-                errorMessage = "Connection error: " + e.getMessage();
-            } catch (InvalidDataException e) {
-                errorMessage = "Invalid data: " + e.getMessage();
-            } catch (ResponseErrorException e) {
-                deleteEvents = isDeleteEventsByCode(e.getHttpCode());
-                errorMessage = "ResponseErrorException: " + e.getMessage();
             } catch (Exception e) {
-                deleteEvents = false;
                 errorMessage = "Exception: " + e.getMessage();
             } finally {
                 boolean isDebugMode = mSensorsDataAPI.isDebugMode();
@@ -281,13 +242,8 @@ class AnalyticsMessages {
                         }
                     }
                 }
-                if (deleteEvents || isDebugMode) {
-                    count = mDbAdapter.cleanupEvents(lastId);
-                    SALog.i(TAG, String.format(Locale.CHINA, "Events flushed. [left = %d]", count));
-                } else {
-                    count = 0;
-                }
-
+                count = mDbAdapter.cleanupEvents(lastId);
+                SALog.i(TAG, String.format(Locale.CHINA, "Events flushed. [left = %d]", count));
             }
         }
         if (mSensorsDataAPI.getConfigOptions().isMultiProcessFlush()) {
@@ -295,113 +251,48 @@ class AnalyticsMessages {
         }
     }
 
-    private void sendHttpRequest(String path, String data, String gzip, String rawMessage, boolean isRedirects) throws ConnectErrorException, ResponseErrorException {
-        SALog.i("mll-sa", "网络请求参数 原始数据" + rawMessage);
-
-        //自定义数据上报
+    /**
+     * 数据动态分发
+     */
+    private void sendHttp(String gzip, String rawMessage) throws ConnectErrorException, ResponseErrorException, InvalidDataException {
         SAConfigOptions configOptions = SensorsDataAPI.getConfigOptions();
-        SAConfigOptions.NetWork customNetWork = configOptions.getCustomNetWork();
-        if (customNetWork != null) {
-            customNetWork.onCustomNetWork(rawMessage);
+        ArrayList<SAConfigOptions.NetWork> customNetWork = configOptions.getCustomNetWork();
+
+        for (SAConfigOptions.NetWork netWork : customNetWork) {
+            if (netWork == null) {
+                return;
+            }
+            String url = netWork.getUrl();
+            HttpDataBean httpDataBean = netWork.getNewData(mergeData(url, rawMessage));
+            httpDataBean.setUrl(url);
+
+            if (mHttpNetWork != null) {
+                mHttpNetWork.sendHttpRequest(httpDataBean, gzip, false);
+            }
+        }
+    }
+
+    private String mergeData(String url, String rawMessage) {
+        String filePath = FileUtils.getCachePath(mContext, url);
+        String cacheData = FileUtils.getText(filePath);
+        if (TextUtils.isEmpty(cacheData)) {
+            FileUtils.sendText(rawMessage, filePath);
+            return rawMessage;
         }
 
-        if (!configOptions.getIsSaHttp()) {
-            return;
-        }
-
-        HttpURLConnection connection = null;
-        InputStream in = null;
-        OutputStream out = null;
-        BufferedOutputStream bout = null;
         try {
-            final URL url = new URL(path);
-            connection = (HttpURLConnection) url.openConnection();
-            if (connection == null) {
-                SALog.i(TAG, String.format("can not connect %s, it shouldn't happen", url.toString()), null);
-                return;
+            JSONArray cache = new JSONArray(cacheData);
+            JSONArray raw = new JSONArray(rawMessage);
+            for (int index = 0; index < raw.length(); index++) {
+                cache.put(raw.get(index));
             }
-            if (configOptions != null && configOptions.mSSLSocketFactory != null
-                    && connection instanceof HttpsURLConnection) {
-                ((HttpsURLConnection) connection).setSSLSocketFactory(configOptions.mSSLSocketFactory);
-            }
-            connection.setInstanceFollowRedirects(false);
-            if (mSensorsDataAPI.getDebugMode() == SensorsDataAPI.DebugMode.DEBUG_ONLY) {
-                connection.addRequestProperty("Dry-Run", "true");
-            }
-
-            String cookie = mSensorsDataAPI.getCookie(false);
-            if (!TextUtils.isEmpty(cookie)) {
-                connection.setRequestProperty("Cookie", cookie);
-            }
-
-            Uri.Builder builder = new Uri.Builder();
-            //先校验crc
-            if (!TextUtils.isEmpty(data)) {
-                builder.appendQueryParameter("crc", String.valueOf(data.hashCode()));
-            }
-
-            builder.appendQueryParameter("gzip", gzip);
-            builder.appendQueryParameter("data_list", data);
-
-            String query = builder.build().getEncodedQuery();
-            if (TextUtils.isEmpty(query)) {
-                return;
-            }
-
-            connection.setFixedLengthStreamingMode(query.getBytes(CHARSET_UTF8).length);
-            connection.setDoOutput(true);
-            connection.setRequestMethod("POST");
-            //设置连接超时时间
-            connection.setConnectTimeout(30 * 1000);
-            //设置读取超时时间
-            connection.setReadTimeout(30 * 1000);
-            out = connection.getOutputStream();
-            bout = new BufferedOutputStream(out);
-            bout.write(query.getBytes(CHARSET_UTF8));
-            bout.flush();
-
-            int responseCode = connection.getResponseCode();
-            SALog.i(TAG, "responseCode: " + responseCode);
-            if (!isRedirects && NetworkUtils.needRedirects(responseCode)) {
-                String location = NetworkUtils.getLocation(connection, path);
-                if (!TextUtils.isEmpty(location)) {
-                    closeStream(bout, out, null, connection);
-                    sendHttpRequest(location, data, gzip, rawMessage, true);
-                    return;
-                }
-            }
-            try {
-                in = connection.getInputStream();
-            } catch (FileNotFoundException e) {
-                in = connection.getErrorStream();
-            }
-            byte[] responseBody = slurp(in);
-            in.close();
-            in = null;
-
-            String response = new String(responseBody, CHARSET_UTF8);
-            if (SALog.isLogEnabled()) {
-                String jsonMessage = JSONUtils.formatJson(rawMessage);
-                // 状态码 200 - 300 间都认为正确
-                if (responseCode >= HttpURLConnection.HTTP_OK &&
-                        responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-                    SALog.i(TAG, "valid message: \n" + jsonMessage);
-                } else {
-                    SALog.i(TAG, "invalid message: \n" + jsonMessage);
-                    SALog.i(TAG, String.format(Locale.CHINA, "ret_code: %d", responseCode));
-                    SALog.i(TAG, String.format(Locale.CHINA, "ret_content: %s", response));
-                }
-            }
-            if (responseCode < HttpURLConnection.HTTP_OK || responseCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
-                // 校验错误
-                throw new ResponseErrorException(String.format("flush failure with response '%s', the response code is '%d'",
-                        response, responseCode), responseCode);
-            }
-        } catch (IOException e) {
-            throw new ConnectErrorException(e);
-        } finally {
-            closeStream(bout, out, in, connection);
+            String mergeData = cache.toString();
+            FileUtils.sendText(mergeData, filePath);
+            return mergeData;
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+        return rawMessage;
     }
 
     /**
@@ -420,63 +311,6 @@ class AnalyticsMessages {
         return shouldDelete;
     }
 
-    private void closeStream(BufferedOutputStream bout, OutputStream out, InputStream in, HttpURLConnection connection) {
-        if (null != bout) {
-            try {
-                bout.close();
-            } catch (Exception e) {
-                SALog.i(TAG, e.getMessage());
-            }
-        }
-
-        if (null != out) {
-            try {
-                out.close();
-            } catch (Exception e) {
-                SALog.i(TAG, e.getMessage());
-            }
-        }
-
-        if (null != in) {
-            try {
-                in.close();
-            } catch (Exception e) {
-                SALog.i(TAG, e.getMessage());
-            }
-        }
-
-        if (null != connection) {
-            try {
-                connection.disconnect();
-            } catch (Exception e) {
-                SALog.i(TAG, e.getMessage());
-            }
-        }
-    }
-
-    private String encodeData(final String rawMessage) throws InvalidDataException {
-        GZIPOutputStream gos = null;
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream(rawMessage.getBytes(CHARSET_UTF8).length);
-            gos = new GZIPOutputStream(os);
-            gos.write(rawMessage.getBytes(CHARSET_UTF8));
-            gos.close();
-            byte[] compressed = os.toByteArray();
-            os.close();
-            return new String(Base64Coder.encode(compressed));
-        } catch (IOException exception) {
-            // 格式错误，直接将数据删除
-            throw new InvalidDataException(exception);
-        } finally {
-            if (gos != null) {
-                try {
-                    gos.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
-        }
-    }
 
     // Worker will manage the (at most single) IO thread associated with
     // this AnalyticsMessages instance.

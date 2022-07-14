@@ -18,8 +18,10 @@ package com.sensorsdata.analytics.android.demo
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.databinding.DataBindingUtil
 import com.sensorsdata.analytics.android.demo.databinding.ActivityMainBinding
+import com.sensorsdata.analytics.android.sdk.pop.FileUtils
 
 class MainActivity1 : Activity() {
 
@@ -28,13 +30,19 @@ class MainActivity1 : Activity() {
         val binding: ActivityMainBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_main)
 
+        val aaa = applicationContext.externalCacheDir.toString() + "/maidian/aaa.txt"
+        binding.button.setOnClickListener {
+            Log.e("mll", aaa)
+            FileUtils.sendText("1111111111111111", aaa)
+        }
 
-        binding.button.apply {
-            setOnClickListener {  }
+        binding.lambdaButton.setOnClickListener {
+
+            FileUtils.deleteFiles(aaa)
+
         }
 
     }
-
 
 
 }

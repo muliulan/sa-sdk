@@ -2032,11 +2032,11 @@ public class SensorsDataAPI extends AbstractSensorsDataAPI {
             }
 
             mOriginServerUrl = serverUrl;
-            if (TextUtils.isEmpty(serverUrl)) {
-                mServerUrl = serverUrl;
-                SALog.i(TAG, "Server url is null or empty.");
-                return;
-            }
+//            if (TextUtils.isEmpty(serverUrl)) {
+//                mServerUrl = serverUrl;
+//                SALog.i(TAG, "Server url is null or empty.");
+//                return;
+//            }
 
             final Uri serverURI = Uri.parse(serverUrl);
             mTrackTaskManager.addTrackEventTask(new Runnable() {
