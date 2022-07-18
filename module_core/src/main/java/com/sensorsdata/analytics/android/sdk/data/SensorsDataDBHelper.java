@@ -32,6 +32,9 @@ class SensorsDataDBHelper extends SQLiteOpenHelper {
     private static final String CHANNEL_EVENT_PERSISTENT_TABLE = String.format("CREATE TABLE %s (%s TEXT PRIMARY KEY, %s INTEGER)",
             DbParams.TABLE_CHANNEL_PERSISTENT, DbParams.KEY_CHANNEL_EVENT_NAME, DbParams.KEY_CHANNEL_RESULT);
 
+    private static final String CACHE_TABLE =
+            String.format("CREATE TABLE %s (_id INTEGER PRIMARY KEY AUTOINCREMENT, %s TEXT NOT NULL, %s INTEGER NOT NULL);", DbParams.POP_CACHE, "url", "json");
+
     SensorsDataDBHelper(Context context) {
         super(context, DbParams.DATABASE_NAME, null, DbParams.DATABASE_VERSION);
     }
@@ -39,10 +42,10 @@ class SensorsDataDBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         SALog.i(TAG, "Creating a new Sensors Analytics DB");
-
         db.execSQL(CREATE_EVENTS_TABLE);
         db.execSQL(EVENTS_TIME_INDEX);
         db.execSQL(CHANNEL_EVENT_PERSISTENT_TABLE);
+        db.execSQL(CACHE_TABLE);
     }
 
     @Override
@@ -53,6 +56,7 @@ class SensorsDataDBHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_EVENTS_TABLE);
         db.execSQL(EVENTS_TIME_INDEX);
         db.execSQL(CHANNEL_EVENT_PERSISTENT_TABLE);
+        db.execSQL(CACHE_TABLE);
     }
 
     @Override

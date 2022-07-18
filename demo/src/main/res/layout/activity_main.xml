@@ -18,21 +18,21 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/button1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="button"
                 android:textAllCaps="false" />
 
             <Button
-                android:id="@+id/lambdaButton"
+                android:id="@+id/button2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Lambda Button"
                 android:textAllCaps="false" />
 
             <Button
-                android:id="@+id/androidXButtonDataBinding"
+                android:id="@+id/button3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="AndroidX DataBinding Button"
@@ -44,6 +44,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
 
+
+            <Button
+                android:id="@+id/button4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AndroidX DataBinding Button"
+                android:textAllCaps="false" />
         </LinearLayout>
     </ScrollView>
 </layout>

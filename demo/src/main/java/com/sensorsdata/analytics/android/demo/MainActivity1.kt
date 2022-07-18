@@ -18,28 +18,31 @@ package com.sensorsdata.analytics.android.demo
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import androidx.databinding.DataBindingUtil
 import com.sensorsdata.analytics.android.demo.databinding.ActivityMainBinding
-import com.sensorsdata.analytics.android.sdk.pop.FileUtils
+import com.sensorsdata.analytics.android.sdk.data.adapter.DbAdapter
 
 class MainActivity1 : Activity() {
 
+    var instance: DbAdapter? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding: ActivityMainBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        val aaa = applicationContext.externalCacheDir.toString() + "/maidian/aaa.txt"
-        binding.button.setOnClickListener {
-            Log.e("mll", aaa)
-            FileUtils.sendText("1111111111111111", aaa)
+        val url = "http://baidu.com"
+        binding.button1.setOnClickListener {
+            instance = DbAdapter.getInstance()
         }
 
-        binding.lambdaButton.setOnClickListener {
-
-            FileUtils.deleteFiles(aaa)
-
+        binding.button2.setOnClickListener {
+            instance?.addCache(url, "a:1,b:${System.currentTimeMillis()}")
+        }
+        binding.button3.setOnClickListener {
+            binding.textView.text = instance?.queryCache(url)
+        }
+        binding.button4.setOnClickListener {
+            instance?.updateCache(url, System.currentTimeMillis().toString())
         }
 
     }

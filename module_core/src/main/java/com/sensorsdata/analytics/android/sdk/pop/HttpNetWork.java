@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.sensorsdata.analytics.android.sdk.SAConfigOptions;
 import com.sensorsdata.analytics.android.sdk.SALog;
 import com.sensorsdata.analytics.android.sdk.SensorsDataAPI;
+import com.sensorsdata.analytics.android.sdk.data.adapter.DbAdapter;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbParams;
 import com.sensorsdata.analytics.android.sdk.exceptions.ConnectErrorException;
 import com.sensorsdata.analytics.android.sdk.exceptions.InvalidDataException;
@@ -44,10 +45,12 @@ public class HttpNetWork {
     private static final String TAG = "SA.AnalyticsMessages";
     private SensorsDataAPI mSensorsDataAPI;
     private Context mContext;
+    private final DbAdapter mDbAdapter;
 
-    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI) {
+    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter) {
         this.mSensorsDataAPI = sensorsDataAPI;
         this.mContext = context;
+        this.mDbAdapter = dbAdapter;
     }
 
     public void sendHttpRequest(HttpDataBean httpDataBean, String gzip, boolean isRedirects) throws ConnectErrorException, ResponseErrorException, InvalidDataException {
@@ -101,7 +104,7 @@ public class HttpNetWork {
                 if (responseCode >= HttpURLConnection.HTTP_OK &&
                         responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
 
-                    FileUtils.deleteFiles(FileUtils.getCachePath(mContext, httpDataBean.getUrl()));
+                    mDbAdapter.deleteCache(httpDataBean.getUrl());
 
                     SALog.i(TAG, "valid message: \n" + jsonMessage);
                 } else {

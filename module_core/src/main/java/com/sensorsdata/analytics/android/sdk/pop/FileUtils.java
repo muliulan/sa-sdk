@@ -17,8 +17,12 @@ import java.io.IOException;
 public class FileUtils {
 
 
-    public static String getCachePath(Context context, String url) {
-        return context.getApplicationContext().getExternalCacheDir().toString() + "/maiDian/" + Uri.parse(url).getHost() + ".txt";
+    public static String getPath(Context context, String url) {
+        return getCachePath(context) + Uri.parse(url).getHost() + ".txt";
+    }
+
+    private static String getCachePath(Context context) {
+        return context.getApplicationContext().getExternalCacheDir().toString() + "/maiDian/";
     }
 
     /**
@@ -47,7 +51,7 @@ public class FileUtils {
     }
 
     /**
-     * 取文件
+     * 存文件
      */
     public static void sendText(String content, String filePath) {
         FileOutputStream fileOutputStream = null;
@@ -66,17 +70,32 @@ public class FileUtils {
 
     /**
      * 删除文件
-     * */
-    public static void deleteFiles(String filePath){
+     */
+    public static void deleteFiles(String filePath) {
         File file = new File(filePath);
-        if (!file.exists()){
+        if (!file.exists()) {
             return;
         }
-        if (file.isFile()){
+        if (file.isFile()) {
             file.delete();
         }
+    }
 
-
+    /**
+     * 删除全部文件
+     * */
+    public static void deleteAll(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            return;
+        }
+        if (!file.isDirectory()) {
+            return;
+        }
+        File[] files = file.listFiles();
+        for (File file1 : files) {
+            file1.delete();
+        }
     }
 
     private static boolean createOrExistsFile(File file) {
@@ -95,7 +114,6 @@ public class FileUtils {
             e.printStackTrace();
             return false;
         }
-
     }
 
     private static boolean createOrExistsDir(final File file) {

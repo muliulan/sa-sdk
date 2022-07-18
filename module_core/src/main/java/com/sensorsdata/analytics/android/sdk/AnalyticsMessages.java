@@ -31,7 +31,6 @@ import com.sensorsdata.analytics.android.sdk.exceptions.ConnectErrorException;
 import com.sensorsdata.analytics.android.sdk.exceptions.DebugModeException;
 import com.sensorsdata.analytics.android.sdk.exceptions.InvalidDataException;
 import com.sensorsdata.analytics.android.sdk.exceptions.ResponseErrorException;
-import com.sensorsdata.analytics.android.sdk.pop.FileUtils;
 import com.sensorsdata.analytics.android.sdk.pop.HttpDataBean;
 import com.sensorsdata.analytics.android.sdk.pop.HttpNetWork;
 import com.sensorsdata.analytics.android.sdk.util.NetworkUtils;
@@ -72,7 +71,7 @@ class AnalyticsMessages {
         mDbAdapter = DbAdapter.getInstance();
         mWorker = new Worker();
         mSensorsDataAPI = sensorsDataAPI;
-        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI);
+        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI,mDbAdapter);
     }
 
     /**
@@ -264,8 +263,10 @@ class AnalyticsMessages {
             }
             String url = netWork.getUrl();
             HttpDataBean httpDataBean = netWork.getNewData(mergeData(url, rawMessage));
+            if (TextUtils.isEmpty(httpDataBean.getJson())) {
+                return;
+            }
             httpDataBean.setUrl(url);
-
             if (mHttpNetWork != null) {
                 mHttpNetWork.sendHttpRequest(httpDataBean, gzip, false);
             }
@@ -273,21 +274,21 @@ class AnalyticsMessages {
     }
 
     private String mergeData(String url, String rawMessage) {
-        String filePath = FileUtils.getCachePath(mContext, url);
-        String cacheData = FileUtils.getText(filePath);
+        String cacheData = mDbAdapter.queryCache(url);
         if (TextUtils.isEmpty(cacheData)) {
-            FileUtils.sendText(rawMessage, filePath);
+            mDbAdapter.addCache(url, rawMessage);
             return rawMessage;
         }
 
         try {
             JSONArray cache = new JSONArray(cacheData);
             JSONArray raw = new JSONArray(rawMessage);
+
             for (int index = 0; index < raw.length(); index++) {
                 cache.put(raw.get(index));
             }
             String mergeData = cache.toString();
-            FileUtils.sendText(mergeData, filePath);
+            mDbAdapter.addCache(url, mergeData);
             return mergeData;
         } catch (JSONException e) {
             e.printStackTrace();

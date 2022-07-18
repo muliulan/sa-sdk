@@ -25,10 +25,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
-import android.os.Bundle;
 
 import com.sensorsdata.analytics.android.sdk.SALog;
-import com.sensorsdata.analytics.android.sdk.data.adapter.DbAdapter;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbParams;
 
 public class SensorsDataContentProvider extends ContentProvider {
@@ -67,6 +65,8 @@ public class SensorsDataContentProvider extends ContentProvider {
             int code = uriMatcher.match(uri);
             if (SAProviderHelper.URI_CODE.EVENTS == code) {
                 return mProviderHelper.deleteEvents(selection, selectionArgs);
+            } else if (SAProviderHelper.URI_CODE.POP_CACHE == code) {
+                return mProviderHelper.deleteCache(selection, selectionArgs);
             } else if (code == SAProviderHelper.URI_CODE.PUSH_ID_KEY) {
                 return mProviderHelper.removeSP(uri.getQueryParameter(DbParams.REMOVE_SP_KEY));
             }
@@ -92,6 +92,8 @@ public class SensorsDataContentProvider extends ContentProvider {
             int code = uriMatcher.match(uri);
             if (code == SAProviderHelper.URI_CODE.EVENTS) {
                 return mProviderHelper.insertEvent(uri, values);
+            } else if (SAProviderHelper.URI_CODE.POP_CACHE == code) {
+                return mProviderHelper.inserCache(uri, values);
             } else if (code == SAProviderHelper.URI_CODE.CHANNEL_PERSISTENT) {
                 return mProviderHelper.insertChannelPersistent(uri, values);
             } else {
@@ -138,6 +140,8 @@ public class SensorsDataContentProvider extends ContentProvider {
                 cursor = mProviderHelper.queryByTable(DbParams.TABLE_EVENTS, projection, selection, selectionArgs, sortOrder);
             } else if (code == SAProviderHelper.URI_CODE.CHANNEL_PERSISTENT) {
                 cursor = mProviderHelper.queryByTable(DbParams.TABLE_CHANNEL_PERSISTENT, projection, selection, selectionArgs, sortOrder);
+            } else if (SAProviderHelper.URI_CODE.POP_CACHE == code) {
+                cursor = mProviderHelper.queryByTable(DbParams.POP_CACHE, projection, selection, selectionArgs, sortOrder);
             } else {
                 cursor = mProviderHelper.queryPersistent(code, uri);
             }
@@ -149,6 +153,12 @@ public class SensorsDataContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        return 0;
+        SQLiteDatabase writableDatabase = dbHelper.getWritableDatabase();
+        int updateRows = 0;
+        int code = uriMatcher.match(uri);
+        if (SAProviderHelper.URI_CODE.POP_CACHE == code) {
+            updateRows = writableDatabase.update(DbParams.POP_CACHE, values, selection, selectionArgs);
+        }
+        return updateRows;
     }
 }

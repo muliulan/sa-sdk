@@ -80,7 +80,7 @@ class SAProviderHelper {
     /**
      * 迁移数据，并删除老的数据库
      *
-     * @param context Context
+     * @param context     Context
      * @param packageName 包名
      */
     public void migratingDB(final Context context, final String packageName) {
@@ -131,11 +131,12 @@ class SAProviderHelper {
      * 构建 Uri 类型
      *
      * @param uriMatcher UriMatcher
-     * @param authority authority
+     * @param authority  authority
      */
     public void appendUri(UriMatcher uriMatcher, String authority) {
         try {
             uriMatcher.addURI(authority, DbParams.TABLE_EVENTS, URI_CODE.EVENTS);
+            uriMatcher.addURI(authority, DbParams.POP_CACHE, URI_CODE.POP_CACHE);
             uriMatcher.addURI(authority, DbParams.TABLE_ACTIVITY_START_COUNT, URI_CODE.ACTIVITY_START_COUNT);
             uriMatcher.addURI(authority, DbParams.TABLE_APP_START_TIME, URI_CODE.APP_START_TIME);
             uriMatcher.addURI(authority, DbParams.APP_EXIT_DATA, URI_CODE.APP_EXIT_DATA);
@@ -157,7 +158,7 @@ class SAProviderHelper {
     /**
      * 插入 Event 埋点数据
      *
-     * @param uri Uri
+     * @param uri    Uri
      * @param values 数据
      * @return Uri
      */
@@ -179,7 +180,7 @@ class SAProviderHelper {
     /**
      * 删除埋点数据
      *
-     * @param selection 条件
+     * @param selection     条件
      * @param selectionArgs 参数
      * @return 受影响数
      */
@@ -199,10 +200,33 @@ class SAProviderHelper {
         return 0;
     }
 
+    public int deleteCache(String selection, String[] selectionArgs) {
+        SQLiteDatabase database = getWritableDatabase();
+        if (database != null) {
+            return database.delete(DbParams.POP_CACHE, selection, selectionArgs);
+        }
+        return 0;
+    }
+
+    public Uri inserCache(Uri uri, ContentValues values) {
+        try {
+            SQLiteDatabase database = getWritableDatabase();
+
+            if (database == null  ) {
+                return uri;
+            }
+            long d = database.insert(DbParams.POP_CACHE, null, values);
+            return ContentUris.withAppendedId(uri, d);
+        } catch (Exception e) {
+            SALog.printStackTrace(e);
+        }
+        return uri;
+    }
+
     /**
      * 插入渠道信息
      *
-     * @param uri Uri
+     * @param uri    Uri
      * @param values 数据
      * @return Uri
      */
@@ -223,8 +247,8 @@ class SAProviderHelper {
     /**
      * insert 处理
      *
-     * @param code Uri code
-     * @param uri Uri
+     * @param code   Uri code
+     * @param uri    Uri
      * @param values ContentValues
      */
     public void insertPersistent(int code, Uri uri, ContentValues values) {
@@ -275,11 +299,11 @@ class SAProviderHelper {
     /**
      * 查询数据
      *
-     * @param tableName 表名
-     * @param projection 列明
-     * @param selection 筛选条件
+     * @param tableName     表名
+     * @param projection    列明
+     * @param selection     筛选条件
      * @param selectionArgs 筛选参数
-     * @param sortOrder 排序
+     * @param sortOrder     排序
      * @return Cursor
      */
     public Cursor queryByTable(String tableName, String[] projection, String selection, String[]
@@ -321,7 +345,7 @@ class SAProviderHelper {
                     break;
                 case URI_CODE.APP_EXIT_DATA:
                     String exitData = persistentAppExitData.get();
-                    if(TextUtils.isEmpty(exitData)) {
+                    if (TextUtils.isEmpty(exitData)) {
                         exitData = persistentAppEndData.get();
                         persistentAppEndData.remove();
                     }
@@ -416,5 +440,6 @@ class SAProviderHelper {
         int USER_IDENTITY_ID = 13;
         int LOGIN_ID_KEY = 14;
         int PUSH_ID_KEY = 15;
+        int POP_CACHE = 16;
     }
 }

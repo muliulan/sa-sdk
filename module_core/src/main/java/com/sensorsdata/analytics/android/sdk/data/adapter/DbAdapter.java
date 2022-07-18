@@ -24,6 +24,7 @@ import com.sensorsdata.analytics.android.sdk.SALog;
 import com.sensorsdata.analytics.android.sdk.data.persistent.PersistentLoader;
 import com.sensorsdata.analytics.android.sdk.data.persistent.PersistentRemoteSDKConfig;
 import com.sensorsdata.analytics.android.sdk.encrypt.SensorsDataEncrypt;
+import com.sensorsdata.analytics.android.sdk.pop.CacheOperation;
 import com.sensorsdata.analytics.android.sdk.util.Base64Coder;
 
 import org.json.JSONException;
@@ -34,6 +35,7 @@ public class DbAdapter {
     private final DbParams mDbParams;
     private DataOperation mTrackEventOperation;
     private DataOperation mPersistentOperation;
+    private CacheOperation mCacheOperation;
 
     private DbAdapter(Context context, String packageName, SensorsDataEncrypt sensorsDataEncrypt) {
         mDbParams = DbParams.getInstance(packageName);
@@ -42,6 +44,8 @@ public class DbAdapter {
         } else {
             mTrackEventOperation = new EventDataOperation(context.getApplicationContext());
         }
+
+        mCacheOperation = new CacheOperation(context.getApplicationContext());
         mPersistentOperation = new PersistentDataOperation(context.getApplicationContext());
     }
 
@@ -445,7 +449,7 @@ public class DbAdapter {
      * 从 Event 表中读取上报数据
      *
      * @param tableName 表名
-     * @param limit 条数限制
+     * @param limit     条数限制
      * @return 数据
      */
     public String[] generateDataString(String tableName, int limit) {
@@ -456,4 +460,26 @@ public class DbAdapter {
         }
         return null;
     }
+
+
+    /************************************************************************ pop ************************************************************************/
+
+    public void addCache(String url, String json) {
+        mCacheOperation.insertData(mDbParams.getCacheUri(), url,json);
+    }
+
+    public void deleteCache(String url) {
+        mCacheOperation.delete(mDbParams.getCacheUri(), url);
+    }
+
+    public String queryCache(String url) {
+        return mCacheOperation.query(mDbParams.getCacheUri(), url);
+    }
+
+    public void updateCache(String url, String json){
+        mCacheOperation.update(mDbParams.getCacheUri(), url,json);
+    }
+
+    /************************************************************************ pop ************************************************************************/
+
 }

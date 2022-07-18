@@ -29,7 +29,7 @@ public class DbParams {
     /* 数据库名称 */
     public static final String DATABASE_NAME = "sensorsdata";
     /* 数据库版本号 */
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 10;
     public static final String TABLE_ACTIVITY_START_COUNT = "activity_started_count";
     public static final String TABLE_APP_START_TIME = "app_start_time";
     public static final String TABLE_FIRST_PROCESS_START = "first_process_start";
@@ -53,9 +53,20 @@ public class DbParams {
     private static DbParams instance;
     private final Uri mUri, mActivityStartCountUri, mAppStartTimeUri, mDataCollectUri,
             mAppExitDataUri, mSessionTimeUri, mLoginIdUri, mChannelPersistentUri, mSubProcessUri,
-            mEnableSDKUri, mDisableSDKUri, mRemoteConfigUri, mUserIdentities, mLoginIdKeyUri, mPushIdUri;
+            mEnableSDKUri, mDisableSDKUri, mRemoteConfigUri, mUserIdentities, mLoginIdKeyUri, mPushIdUri, mCacheUri;
     /* 替换 APP_END_DATA 数据，使用新的 SP 文件保存 */
     public static final String APP_EXIT_DATA = "app_exit_data";
+
+
+    /************************************************************************ pop ************************************************************************/
+    //表名
+    public static final String POP_CACHE = "pop_cache";
+    //表字段
+    public static final String POP_KEY_URL = "url";
+    public static final String POP_KEY_JSON = "json";
+
+    /************************************************************************ pop ************************************************************************/
+
 
     public interface PersistentName {
         String APP_END_DATA = "app_end_data";
@@ -76,6 +87,7 @@ public class DbParams {
 
     private DbParams(String packageName) {
         mUri = Uri.parse("content://" + packageName + ".SensorsDataContentProvider/" + TABLE_EVENTS);
+        mCacheUri = Uri.parse("content://" + packageName + ".SensorsDataContentProvider/" + POP_CACHE);
         mActivityStartCountUri = Uri.parse("content://" + packageName + ".SensorsDataContentProvider/" + TABLE_ACTIVITY_START_COUNT);
         mAppStartTimeUri = Uri.parse("content://" + packageName + ".SensorsDataContentProvider/" + TABLE_APP_START_TIME);
         mAppExitDataUri = Uri.parse("content://" + packageName + ".SensorsDataContentProvider/" + APP_EXIT_DATA);
@@ -113,6 +125,10 @@ public class DbParams {
      */
     Uri getEventUri() {
         return mUri;
+    }
+
+    Uri getCacheUri(){
+        return mCacheUri;
     }
 
     /**
