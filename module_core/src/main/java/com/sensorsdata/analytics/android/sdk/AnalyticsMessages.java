@@ -71,7 +71,7 @@ class AnalyticsMessages {
         mDbAdapter = DbAdapter.getInstance();
         mWorker = new Worker();
         mSensorsDataAPI = sensorsDataAPI;
-        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI,mDbAdapter);
+        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter);
     }
 
     /**
@@ -254,6 +254,10 @@ class AnalyticsMessages {
      * 数据动态分发
      */
     private void sendHttp(String gzip, String rawMessage) throws ConnectErrorException, ResponseErrorException, InvalidDataException {
+        if (TextUtils.isEmpty(rawMessage)) {
+            return;
+        }
+
         SAConfigOptions configOptions = SensorsDataAPI.getConfigOptions();
         ArrayList<SAConfigOptions.NetWork> customNetWork = configOptions.getCustomNetWork();
 
@@ -262,10 +266,18 @@ class AnalyticsMessages {
                 return;
             }
             String url = netWork.getUrl();
-            HttpDataBean httpDataBean = netWork.getNewData(mergeData(url, rawMessage));
-            if (TextUtils.isEmpty(httpDataBean.getJson())) {
+            if (TextUtils.isEmpty(url)) {
                 return;
             }
+            String mergeData = mergeData(url, rawMessage);
+            String json = TextUtils.isEmpty(mergeData) ? rawMessage : mergeData;
+            HttpDataBean httpDataBean = netWork.getNewData(json);
+
+            if (TextUtils.isEmpty(httpDataBean.getJson())) {
+                //如果返回改变之后的数据为空,那就代表不需要改变,还使用原始数据
+                httpDataBean.setJson(json);
+            }
+
             httpDataBean.setUrl(url);
             if (mHttpNetWork != null) {
                 mHttpNetWork.sendHttpRequest(httpDataBean, gzip, false);

@@ -44,18 +44,12 @@ public class HttpDataBean {
         return mRequestMethod;
     }
 
-
     public boolean isSa() {
         return mIsSa;
     }
 
-
     public HashMap<String, Object> getHead() {
         return head;
-    }
-
-    public void setHead(HashMap<String, Object> head) {
-        this.head = head;
     }
 
     public String getJson() {
