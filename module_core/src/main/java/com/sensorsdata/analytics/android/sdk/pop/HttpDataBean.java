@@ -52,6 +52,10 @@ public class HttpDataBean {
         return head;
     }
 
+    public void setHead(HashMap<String, Object> head) {
+        this.head = head;
+    }
+
     public String getJson() {
         return json;
     }
