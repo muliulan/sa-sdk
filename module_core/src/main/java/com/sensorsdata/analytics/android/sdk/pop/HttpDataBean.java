@@ -12,25 +12,19 @@ public class HttpDataBean {
     /**
      * 请求类型
      */
-    private RequestMethod mRequestMethod;
+    private RequestMethod mRequestMethod = HttpDataBean.RequestMethod.POST;
     /**
      * 是否是神策
      */
-    private boolean mIsSa;
-
+    private boolean mIsSa = false;
     /**
-     * 请求头参数(为空就没有)
+     * 请求头参数
      */
     private HashMap<String, Object> head;
     /**
-     * 修改后的数据结构 (为空就使用原始数据结构)
+     * 修改后的数据结构
      */
     private String json;
-
-    public HttpDataBean(RequestMethod requestMethod, boolean isSa) {
-        this.mRequestMethod = requestMethod;
-        this.mIsSa = isSa;
-    }
 
     public String getUrl() {
         return mUrl;
@@ -40,12 +34,20 @@ public class HttpDataBean {
         this.mUrl = url;
     }
 
-    public RequestMethod getRequestMethod() {
-        return mRequestMethod;
+    public void setSa(boolean isSa) {
+        this.mIsSa = isSa;
     }
 
     public boolean isSa() {
         return mIsSa;
+    }
+
+    public RequestMethod getRequestMethod() {
+        return mRequestMethod;
+    }
+
+    public void setRequestMethod(RequestMethod requestMethod) {
+        this.mRequestMethod = requestMethod;
     }
 
     public HashMap<String, Object> getHead() {

@@ -53,8 +53,9 @@ class MyApplication : Application() {
             override fun getUrl(): String = "https://sdkdebugtest.datasink.sensorsdata.cn/sa?project=default&token=cfb8b60e42e0ae9b"
 
             override fun getNewData(data: String?): HttpDataBean =
-                HttpDataBean(HttpDataBean.RequestMethod.POST, true).apply {
+                HttpDataBean().apply {
                     json = data
+                    isSa=true
                 }
 
         }))
