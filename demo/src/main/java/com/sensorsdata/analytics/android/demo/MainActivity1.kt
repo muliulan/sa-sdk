@@ -30,19 +30,20 @@ class MainActivity1 : Activity() {
         val binding: ActivityMainBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        val url = "http://baidu.com"
+        val url = "http://1111.com"
+        instance = DbAdapter.getInstance()
         binding.button1.setOnClickListener {
-            instance = DbAdapter.getInstance()
+            instance?.addCache(url, "a:1,b:${System.currentTimeMillis()}")
         }
 
         binding.button2.setOnClickListener {
-            instance?.addCache(url, "a:1,b:${System.currentTimeMillis()}")
+            instance?.deleteCache(url)
         }
         binding.button3.setOnClickListener {
-            binding.textView.text = instance?.queryCache(url)
+            instance?.updateCache(url, System.currentTimeMillis().toString())
         }
         binding.button4.setOnClickListener {
-            instance?.updateCache(url, System.currentTimeMillis().toString())
+            binding.textView.text = instance?.queryCache(url)
         }
 
     }

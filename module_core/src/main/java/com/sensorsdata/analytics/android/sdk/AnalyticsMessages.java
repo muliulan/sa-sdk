@@ -300,7 +300,7 @@ class AnalyticsMessages {
                 cache.put(raw.get(index));
             }
             String mergeData = cache.toString();
-            mDbAdapter.addCache(url, mergeData);
+            mDbAdapter.updateCache(url, mergeData);
             return mergeData;
         } catch (JSONException e) {
             e.printStackTrace();

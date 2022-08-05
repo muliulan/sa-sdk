@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-<!--    <data>-->
+    <!--    <data>-->
 
-<!--        <variable-->
-<!--            name="handlers"-->
-<!--            type="com.sensorsdata.analytics.android.demo.MainActivity" />-->
-<!--    </data>-->
+    <!--        <variable-->
+    <!--            name="handlers"-->
+    <!--            type="com.sensorsdata.analytics.android.demo.MainActivity" />-->
+    <!--    </data>-->
 
     <ScrollView
         android:layout_width="match_parent"
@@ -20,37 +20,50 @@
             <Button
                 android:id="@+id/button1"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="button"
-                android:textAllCaps="false" />
+                android:layout_height="50dp"
+                android:background="@color/colorPrimary"
+                android:text="增"
+                android:textAllCaps="false"
+                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/button2"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Lambda Button"
-                android:textAllCaps="false" />
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/colorPrimary"
+                android:text="删"
+                android:textAllCaps="false"
+                android:textSize="20sp" />
 
             <Button
                 android:id="@+id/button3"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="AndroidX DataBinding Button"
-                android:textAllCaps="false" />
-
-            <TextView
-                android:id="@+id/textView"
-                android:textColor="#000"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/colorPrimary"
+                android:text="改"
+                android:textAllCaps="false"
+                android:textSize="20sp" />
 
 
             <Button
                 android:id="@+id/button4"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="AndroidX DataBinding Button"
-                android:textAllCaps="false" />
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/colorPrimary"
+                android:text="查"
+                android:textAllCaps="false"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="#000" />
+
+
         </LinearLayout>
     </ScrollView>
 </layout>

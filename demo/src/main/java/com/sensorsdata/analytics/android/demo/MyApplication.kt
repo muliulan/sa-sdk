@@ -50,7 +50,7 @@ class MyApplication : Application() {
         // 打开 crash 信息采集
         configOptions.enableTrackAppCrash()
         configOptions.setCustomNetWorkListener(arrayListOf(object : SAConfigOptions.NetWork {
-            override fun getUrl(): String = "https://sdkdebugtest.datasink.sensorsdata.cn/sa?project=default&token=cfb8b60e42e0ae9b"
+            override fun getUrl(): String = "http://sdkdebugtest.datasink.sensorsdata.cn/sa?project=default&token=cfb8b60e42e0ae9b"
 
             override fun getNewData(data: String?): HttpDataBean =
                 HttpDataBean().apply {

@@ -79,6 +79,10 @@ public class HttpNetWork {
 
             int responseCode = connection.getResponseCode();
             SALog.i(TAG, "responseCode: " + responseCode);
+            if (responseCode == 200) {
+                //请求成功删除 数据库数据
+                mDbAdapter.deleteCache(httpDataBean.getUrl());
+            }
             if (!isRedirects && NetworkUtils.needRedirects(responseCode)) {
                 String location = NetworkUtils.getLocation(connection, httpDataBean.getUrl());
 
@@ -103,8 +107,6 @@ public class HttpNetWork {
                 // 状态码 200 - 300 间都认为正确
                 if (responseCode >= HttpURLConnection.HTTP_OK &&
                         responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-
-                    mDbAdapter.deleteCache(httpDataBean.getUrl());
 
                     SALog.i(TAG, "valid message: \n" + jsonMessage);
                 } else {
