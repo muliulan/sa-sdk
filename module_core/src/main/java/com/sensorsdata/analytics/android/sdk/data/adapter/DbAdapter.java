@@ -19,7 +19,6 @@ package com.sensorsdata.analytics.android.sdk.data.adapter;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 
 import com.sensorsdata.analytics.android.sdk.SALog;
 import com.sensorsdata.analytics.android.sdk.data.persistent.PersistentLoader;
@@ -466,22 +465,18 @@ public class DbAdapter {
     /************************************************************************ pop ************************************************************************/
 
     public void addCache(String url, String json) {
-        Log.e("mll add",url);
         mCacheOperation.insertData(mDbParams.getCacheUri(), url,json);
     }
 
     public void deleteCache(String url) {
-        Log.e("del del",url);
         mCacheOperation.delete(mDbParams.getCacheUri(), url);
     }
 
     public String queryCache(String url) {
-        Log.e("del chaxun",url);
         return mCacheOperation.query(mDbParams.getCacheUri(), url);
     }
 
     public void updateCache(String url, String json){
-        Log.e("del gengxin",url);
         mCacheOperation.update(mDbParams.getCacheUri(), url,json);
     }
 

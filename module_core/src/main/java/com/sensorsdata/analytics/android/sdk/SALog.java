@@ -124,7 +124,6 @@ public class SALog {
      */
     public static void printStackTrace(Exception e) {
         if (enableLog && !disableSDK && e != null) {
-            Log.e("SA.Exception", "", e);
         }
     }
 
