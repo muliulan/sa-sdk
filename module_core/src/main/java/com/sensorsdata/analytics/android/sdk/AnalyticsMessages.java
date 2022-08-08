@@ -62,6 +62,9 @@ class AnalyticsMessages {
     private SensorsDataAPI mSensorsDataAPI;
     private HttpNetWork mHttpNetWork;
 
+    private final List<UrlDataBean> httpDataList = new ArrayList<>();
+    private UrlDataBean mUrlDataBean;
+
     /**
      * 不要直接调用，通过 getInstance 方法获取实例
      */
@@ -72,14 +75,12 @@ class AnalyticsMessages {
         mSensorsDataAPI = sensorsDataAPI;
         mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter, new HttpNetWork.HttpState() {
             @Override
-            public void succeed() {
-                endHttp();
+            public void httpEnd() {
+                if (httpDataList.size() == 0) {
+                    return;
+                }
+                httpDataList.remove(mUrlDataBean);
                 startHttp();
-            }
-
-            @Override
-            public void error(Exception e) {
-
             }
         });
     }
@@ -284,18 +285,18 @@ class AnalyticsMessages {
         }
     }
 
-    private final List<UrlDataBean> httpDataList = new ArrayList<>();
-
     private void startHttp() {
         try {
-             List<UrlDataBean> list = httpDataList;
+            List<UrlDataBean> list = httpDataList;
             if (list.size() == 0) {
                 return;
             }
-            SAConfigOptions.NetWork netWork = list.get(0).getNetWork();
-            String url = list.get(0).getNetWork().getUrl();
-            String rawMessage = list.get(0).getRawMessage();
-            String gzip = list.get(0).getGzip();
+
+            mUrlDataBean = list.get(0);
+            SAConfigOptions.NetWork netWork = mUrlDataBean.getNetWork();
+            String url = mUrlDataBean.getNetWork().getUrl();
+            String rawMessage = mUrlDataBean.getRawMessage();
+            String gzip = mUrlDataBean.getGzip();
 
             String mergeData = mergeData(url, rawMessage);
             String json = TextUtils.isEmpty(mergeData) ? rawMessage : mergeData;
@@ -311,16 +312,8 @@ class AnalyticsMessages {
                 mHttpNetWork.sendHttpRequest(httpDataBean, gzip, false);
             }
         } catch (Exception e) {
-            endHttp();
             startHttp();
         }
-    }
-
-    private void endHttp() {
-        if (httpDataList.size() == 0) {
-            return;
-        }
-        httpDataList.remove(0);
     }
 
 

@@ -85,6 +85,7 @@ public class HttpNetWork {
                 //请求成功删除 数据库数据
                 mDbAdapter.deleteCache(httpDataBean.getUrl());
             }
+            mHttpState.httpEnd();
             if (!isRedirects && NetworkUtils.needRedirects(responseCode)) {
                 String location = NetworkUtils.getLocation(connection, httpDataBean.getUrl());
 
@@ -165,7 +166,7 @@ public class HttpNetWork {
     /**
      * 神策的数据
      */
-    private String saData(HttpURLConnection connection, String rawMessage, String gzip) throws UnsupportedEncodingException, InvalidDataException {
+    private String saData(HttpURLConnection connection, String rawMessage, String gzip) throws InvalidDataException {
         if (mSensorsDataAPI.getDebugMode() == SensorsDataAPI.DebugMode.DEBUG_ONLY) {
             connection.addRequestProperty("Dry-Run", "true");
         }
@@ -267,9 +268,7 @@ public class HttpNetWork {
     }
 
     public interface HttpState {
-        void succeed();
-
-        void error(Exception e);
+        void httpEnd();
     }
 
 }

@@ -33,17 +33,17 @@ class MainActivity1 : Activity() {
         val url = "http://1111.com"
         instance = DbAdapter.getInstance()
         binding.button1.setOnClickListener {
-            instance?.addCache(url, "a:1,b:${System.currentTimeMillis()}")
+//            instance?.addCache(url, "a:1,b:${System.currentTimeMillis()}")
         }
 
         binding.button2.setOnClickListener {
-            instance?.deleteCache(url)
+//            instance?.deleteCache(url)
         }
         binding.button3.setOnClickListener {
-            instance?.updateCache(url, System.currentTimeMillis().toString())
+//            instance?.updateCache(url, System.currentTimeMillis().toString())
         }
         binding.button4.setOnClickListener {
-            binding.textView.text = instance?.queryCache(url)
+//            binding.textView.text = instance?.queryCache(url)
         }
 
     }
