@@ -27,12 +27,10 @@ import android.text.TextUtils;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbAdapter;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbParams;
 import com.sensorsdata.analytics.android.sdk.dialog.SensorsDataDialogUtils;
-import com.sensorsdata.analytics.android.sdk.exceptions.ConnectErrorException;
 import com.sensorsdata.analytics.android.sdk.exceptions.DebugModeException;
-import com.sensorsdata.analytics.android.sdk.exceptions.InvalidDataException;
-import com.sensorsdata.analytics.android.sdk.exceptions.ResponseErrorException;
 import com.sensorsdata.analytics.android.sdk.pop.HttpDataBean;
 import com.sensorsdata.analytics.android.sdk.pop.HttpNetWork;
+import com.sensorsdata.analytics.android.sdk.pop.UrlDataBean;
 import com.sensorsdata.analytics.android.sdk.util.NetworkUtils;
 
 import org.json.JSONArray;
@@ -42,6 +40,7 @@ import org.json.JSONObject;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -71,7 +70,18 @@ class AnalyticsMessages {
         mDbAdapter = DbAdapter.getInstance();
         mWorker = new Worker();
         mSensorsDataAPI = sensorsDataAPI;
-        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter);
+        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter, new HttpNetWork.HttpState() {
+            @Override
+            public void succeed() {
+                endHttp();
+                startHttp();
+            }
+
+            @Override
+            public void error(Exception e) {
+
+            }
+        });
     }
 
     /**
@@ -172,11 +182,6 @@ class AnalyticsMessages {
                 return;
             }
 
-//            if (TextUtils.isEmpty(mSensorsDataAPI.getServerUrl())) {
-//                SALog.i(TAG, "Server url is null or empty.");
-//                return;
-//            }
-
             //无网络
             if (!NetworkUtils.isNetworkAvailable(mContext)) {
                 return;
@@ -253,7 +258,7 @@ class AnalyticsMessages {
     /**
      * 数据动态分发
      */
-    private void sendHttp(String gzip, String rawMessage) throws ConnectErrorException, ResponseErrorException, InvalidDataException {
+    private void sendHttp(String gzip, String rawMessage) {
         if (TextUtils.isEmpty(rawMessage)) {
             return;
         }
@@ -269,6 +274,29 @@ class AnalyticsMessages {
             if (TextUtils.isEmpty(url)) {
                 return;
             }
+
+            if (httpDataList.size() == 0) {
+                httpDataList.add(new UrlDataBean(netWork, rawMessage, gzip));
+                startHttp();
+            } else {
+                httpDataList.add(new UrlDataBean(netWork, rawMessage, gzip));
+            }
+        }
+    }
+
+    private final List<UrlDataBean> httpDataList = new ArrayList<>();
+
+    private void startHttp() {
+        try {
+             List<UrlDataBean> list = httpDataList;
+            if (list.size() == 0) {
+                return;
+            }
+            SAConfigOptions.NetWork netWork = list.get(0).getNetWork();
+            String url = list.get(0).getNetWork().getUrl();
+            String rawMessage = list.get(0).getRawMessage();
+            String gzip = list.get(0).getGzip();
+
             String mergeData = mergeData(url, rawMessage);
             String json = TextUtils.isEmpty(mergeData) ? rawMessage : mergeData;
             HttpDataBean httpDataBean = netWork.getNewData(json);
@@ -282,8 +310,19 @@ class AnalyticsMessages {
             if (mHttpNetWork != null) {
                 mHttpNetWork.sendHttpRequest(httpDataBean, gzip, false);
             }
+        } catch (Exception e) {
+            endHttp();
+            startHttp();
         }
     }
+
+    private void endHttp() {
+        if (httpDataList.size() == 0) {
+            return;
+        }
+        httpDataList.remove(0);
+    }
+
 
     private String mergeData(String url, String rawMessage) {
         String cacheData = mDbAdapter.queryCache(url);

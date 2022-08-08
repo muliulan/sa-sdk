@@ -46,11 +46,13 @@ public class HttpNetWork {
     private SensorsDataAPI mSensorsDataAPI;
     private Context mContext;
     private final DbAdapter mDbAdapter;
+    private HttpState mHttpState;
 
-    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter) {
+    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter, HttpState httpState) {
         this.mSensorsDataAPI = sensorsDataAPI;
         this.mContext = context;
         this.mDbAdapter = dbAdapter;
+        this.mHttpState = httpState;
     }
 
     public void sendHttpRequest(HttpDataBean httpDataBean, String gzip, boolean isRedirects) throws ConnectErrorException, ResponseErrorException, InvalidDataException {
@@ -263,4 +265,11 @@ public class HttpNetWork {
             }
         }
     }
+
+    public interface HttpState {
+        void succeed();
+
+        void error(Exception e);
+    }
+
 }
