@@ -73,16 +73,7 @@ class AnalyticsMessages {
         mDbAdapter = DbAdapter.getInstance();
         mWorker = new Worker();
         mSensorsDataAPI = sensorsDataAPI;
-        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter, new HttpNetWork.HttpState() {
-            @Override
-            public void httpEnd() {
-                if (httpDataList.size() == 0) {
-                    return;
-                }
-                httpDataList.remove(mUrlDataBean);
-                startHttp();
-            }
-        });
+        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter);
     }
 
     /**
@@ -269,34 +260,12 @@ class AnalyticsMessages {
 
         for (SAConfigOptions.NetWork netWork : customNetWork) {
             if (netWork == null) {
-                return;
+                continue;
             }
             String url = netWork.getUrl();
             if (TextUtils.isEmpty(url)) {
-                return;
+                continue;
             }
-
-            if (httpDataList.size() == 0) {
-                httpDataList.add(new UrlDataBean(netWork, rawMessage, gzip));
-                startHttp();
-            } else {
-                httpDataList.add(new UrlDataBean(netWork, rawMessage, gzip));
-            }
-        }
-    }
-
-    private void startHttp() {
-        try {
-            List<UrlDataBean> list = httpDataList;
-            if (list.size() == 0) {
-                return;
-            }
-
-            mUrlDataBean = list.get(0);
-            SAConfigOptions.NetWork netWork = mUrlDataBean.getNetWork();
-            String url = mUrlDataBean.getNetWork().getUrl();
-            String rawMessage = mUrlDataBean.getRawMessage();
-            String gzip = mUrlDataBean.getGzip();
 
             String mergeData = mergeData(url, rawMessage);
             String json = TextUtils.isEmpty(mergeData) ? rawMessage : mergeData;
@@ -311,8 +280,6 @@ class AnalyticsMessages {
             if (mHttpNetWork != null) {
                 mHttpNetWork.sendHttpRequest(httpDataBean, gzip, false);
             }
-        } catch (Exception e) {
-            startHttp();
         }
     }
 
@@ -320,7 +287,6 @@ class AnalyticsMessages {
     private String mergeData(String url, String rawMessage) {
         String cacheData = mDbAdapter.queryCache(url);
         if (TextUtils.isEmpty(cacheData)) {
-            mDbAdapter.addCache(url, rawMessage);
             return rawMessage;
         }
 
@@ -332,7 +298,7 @@ class AnalyticsMessages {
                 cache.put(raw.get(index));
             }
             String mergeData = cache.toString();
-            mDbAdapter.updateCache(url, mergeData);
+            mDbAdapter.deleteCache(url);
             return mergeData;
         } catch (JSONException e) {
             e.printStackTrace();

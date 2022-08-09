@@ -11,7 +11,6 @@ import com.sensorsdata.analytics.android.sdk.SALog;
 import com.sensorsdata.analytics.android.sdk.SensorsDataAPI;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbAdapter;
 import com.sensorsdata.analytics.android.sdk.data.adapter.DbParams;
-import com.sensorsdata.analytics.android.sdk.exceptions.ConnectErrorException;
 import com.sensorsdata.analytics.android.sdk.exceptions.InvalidDataException;
 import com.sensorsdata.analytics.android.sdk.exceptions.ResponseErrorException;
 import com.sensorsdata.analytics.android.sdk.util.Base64Coder;
@@ -46,16 +45,14 @@ public class HttpNetWork {
     private SensorsDataAPI mSensorsDataAPI;
     private Context mContext;
     private final DbAdapter mDbAdapter;
-    private HttpState mHttpState;
 
-    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter, HttpState httpState) {
+    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter) {
         this.mSensorsDataAPI = sensorsDataAPI;
         this.mContext = context;
         this.mDbAdapter = dbAdapter;
-        this.mHttpState = httpState;
     }
 
-    public void sendHttpRequest(HttpDataBean httpDataBean, String gzip, boolean isRedirects) throws ConnectErrorException, ResponseErrorException, InvalidDataException {
+    public void sendHttpRequest(HttpDataBean httpDataBean, String gzip, boolean isRedirects) {
         SALog.i("mll-sa", "网络请求参数 原始数据" + httpDataBean.getJson());
 
         HttpURLConnection connection = null;
@@ -81,11 +78,9 @@ public class HttpNetWork {
 
             int responseCode = connection.getResponseCode();
             SALog.i(TAG, "responseCode: " + responseCode);
-            if (responseCode == 200) {
-                //请求成功删除 数据库数据
-                mDbAdapter.deleteCache(httpDataBean.getUrl());
+            if (responseCode != 200) {
+                mDbAdapter.addCache(httpDataBean.getUrl(), httpDataBean.getJson());
             }
-            mHttpState.httpEnd();
             if (!isRedirects && NetworkUtils.needRedirects(responseCode)) {
                 String location = NetworkUtils.getLocation(connection, httpDataBean.getUrl());
 
@@ -123,8 +118,8 @@ public class HttpNetWork {
                 throw new ResponseErrorException(String.format("flush failure with response '%s', the response code is '%d'",
                         response, responseCode), responseCode);
             }
-        } catch (IOException e) {
-            throw new ConnectErrorException(e);
+        } catch (Exception e) {
+            mDbAdapter.addCache(httpDataBean.getUrl(), httpDataBean.getJson());
         } finally {
             closeStream(bout, out, in, connection);
         }

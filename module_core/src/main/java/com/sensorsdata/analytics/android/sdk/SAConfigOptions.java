@@ -121,7 +121,7 @@ public final class SAConfigOptions extends AbstractSAConfigOptions implements Cl
      * @return SAOptionsConfig
      */
     public SAConfigOptions setFlushBulkSize(int flushBulkSize) {
-        this.mFlushBulkSize = Math.max(50, flushBulkSize);
+        this.mFlushBulkSize = Math.max(10, flushBulkSize);
         return this;
     }
 

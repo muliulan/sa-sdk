@@ -148,7 +148,7 @@ public interface ISensorsDataAPI extends IFragmentAPI, IUserIdentityAPI, SAAdver
     int getFlushBulkSize();
 
     /**
-     * 设置本地缓存日志的最大条目数，最小 50 条
+     * 设置本地缓存日志的最大条目数，最小 10 条
      *
      * @param flushBulkSize 缓存数目
      */
