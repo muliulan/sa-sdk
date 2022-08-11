@@ -208,7 +208,7 @@ class AnalyticsMessages {
                     /* debug 模式下服务器只允许接收 1 条数据 */
                     eventsData = mDbAdapter.generateDataString(DbParams.TABLE_EVENTS, 1);
                 } else {
-                    eventsData = mDbAdapter.generateDataString(DbParams.TABLE_EVENTS, 50);
+                    eventsData = mDbAdapter.generateDataString(DbParams.TABLE_EVENTS, mSensorsDataAPI.getFlushBulkSize());
                 }
             }
 
