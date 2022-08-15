@@ -73,7 +73,7 @@ class AnalyticsMessages {
         mDbAdapter = DbAdapter.getInstance();
         mWorker = new Worker();
         mSensorsDataAPI = sensorsDataAPI;
-        mHttpNetWork = new HttpNetWork(context, mSensorsDataAPI, mDbAdapter);
+        mHttpNetWork = new HttpNetWork(mSensorsDataAPI, mDbAdapter);
     }
 
     /**

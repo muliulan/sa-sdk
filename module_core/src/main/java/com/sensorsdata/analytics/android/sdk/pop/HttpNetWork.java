@@ -2,7 +2,6 @@ package com.sensorsdata.analytics.android.sdk.pop;
 
 import static com.sensorsdata.analytics.android.sdk.util.Base64Coder.CHARSET_UTF8;
 
-import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 
@@ -43,12 +42,10 @@ public class HttpNetWork {
 
     private static final String TAG = "SA.AnalyticsMessages";
     private SensorsDataAPI mSensorsDataAPI;
-    private Context mContext;
     private final DbAdapter mDbAdapter;
 
-    public HttpNetWork(Context context, SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter) {
+    public HttpNetWork(SensorsDataAPI sensorsDataAPI, DbAdapter dbAdapter) {
         this.mSensorsDataAPI = sensorsDataAPI;
-        this.mContext = context;
         this.mDbAdapter = dbAdapter;
     }
 
@@ -63,7 +60,6 @@ public class HttpNetWork {
             final URL url = new URL(httpDataBean.getUrl());
             connection = (HttpURLConnection) url.openConnection();
             if (connection == null) {
-                SALog.i(TAG, String.format("can not connect %s, it shouldn't happen", url), null);
                 return;
             }
             setHead(httpDataBean, connection);
@@ -81,7 +77,7 @@ public class HttpNetWork {
             if (responseCode != 200) {
                 mDbAdapter.addCache(httpDataBean.getUrl(), httpDataBean.getJson());
             }
-            if (!isRedirects && NetworkUtils.needRedirects(responseCode)) {
+            if (!isRedirects && NetworkUtils.needRedirects(responseCode) && httpDataBean.isSa()) {
                 String location = NetworkUtils.getLocation(connection, httpDataBean.getUrl());
 
                 if (!TextUtils.isEmpty(location)) {
@@ -99,29 +95,33 @@ public class HttpNetWork {
             in.close();
             in = null;
 
-            String response = new String(responseBody, CHARSET_UTF8);
-            if (SALog.isLogEnabled()) {
-                String jsonMessage = JSONUtils.formatJson(httpDataBean.getJson());
-                // 状态码 200 - 300 间都认为正确
-                if (responseCode >= HttpURLConnection.HTTP_OK &&
-                        responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-
-                    SALog.i(TAG, "valid message: \n" + jsonMessage);
-                } else {
-                    SALog.i(TAG, "invalid message: \n" + jsonMessage);
-                    SALog.i(TAG, String.format(Locale.CHINA, "ret_code: %d", responseCode));
-                    SALog.i(TAG, String.format(Locale.CHINA, "ret_content: %s", response));
-                }
-            }
-            if (responseCode < HttpURLConnection.HTTP_OK || responseCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
-                // 校验错误
-                throw new ResponseErrorException(String.format("flush failure with response '%s', the response code is '%d'",
-                        response, responseCode), responseCode);
-            }
+            responseLog(httpDataBean, responseCode, responseBody);
         } catch (Exception e) {
             mDbAdapter.addCache(httpDataBean.getUrl(), httpDataBean.getJson());
         } finally {
             closeStream(bout, out, in, connection);
+        }
+    }
+
+    private void responseLog(HttpDataBean httpDataBean, int responseCode, byte[] responseBody) throws UnsupportedEncodingException, ResponseErrorException {
+        String response = new String(responseBody, CHARSET_UTF8);
+        if (SALog.isLogEnabled()) {
+            String jsonMessage = JSONUtils.formatJson(httpDataBean.getJson());
+            // 状态码 200 - 300 间都认为正确
+            if (responseCode >= HttpURLConnection.HTTP_OK &&
+                    responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+
+                SALog.i(TAG, "valid message: \n" + jsonMessage);
+            } else {
+                SALog.i(TAG, "invalid message: \n" + jsonMessage);
+                SALog.i(TAG, String.format(Locale.CHINA, "ret_code: %d", responseCode));
+                SALog.i(TAG, String.format(Locale.CHINA, "ret_content: %s", response));
+            }
+        }
+        if (responseCode < HttpURLConnection.HTTP_OK || responseCode >= HttpURLConnection.HTTP_MULT_CHOICE) {
+            // 校验错误
+            throw new ResponseErrorException(String.format("flush failure with response '%s', the response code is '%d'",
+                    response, responseCode), responseCode);
         }
     }
 
@@ -134,11 +134,11 @@ public class HttpNetWork {
         connection.setFixedLengthStreamingMode(query.length());
         connection.setDoOutput(true);
         connection.setRequestMethod(httpDataBean.getRequestMethod().name());
-        connection.setConnectTimeout(30 * 1000);
-        connection.setReadTimeout(30 * 1000);
+        connection.setConnectTimeout(5 * 1000);
+        connection.setReadTimeout(5 * 1000);
     }
 
-    private String getQuery(HttpDataBean httpDataBean, String gzip, HttpURLConnection connection) throws UnsupportedEncodingException, InvalidDataException {
+    private String getQuery(HttpDataBean httpDataBean, String gzip, HttpURLConnection connection) throws InvalidDataException {
         String query;
         if (httpDataBean.isSa()) {
             query = saData(connection, httpDataBean.getJson(), gzip);
@@ -260,10 +260,6 @@ public class HttpNetWork {
                 }
             }
         }
-    }
-
-    public interface HttpState {
-        void httpEnd();
     }
 
 }
