@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Locale;
@@ -67,10 +66,13 @@ public class HttpNetWork {
             String query = getQuery(httpDataBean, gzip, connection);
             connectionConfig(connection, query, httpDataBean);
 
+//            out = connection.getOutputStream();
+//            bout = new PrintWriter(out);
+//            bout.write(query);
+//            bout.flush();
+
             out = connection.getOutputStream();
-            bout = new PrintWriter(out);
-            bout.write(query);
-            bout.flush();
+            out.write(query.getBytes());
 
             int responseCode = connection.getResponseCode();
             SALog.i(TAG, "responseCode: " + responseCode);
@@ -125,7 +127,7 @@ public class HttpNetWork {
         }
     }
 
-    private void connectionConfig(HttpURLConnection connection, String query, HttpDataBean httpDataBean) throws ProtocolException {
+    private void connectionConfig(HttpURLConnection connection, String query, HttpDataBean httpDataBean) throws IOException {
         SAConfigOptions configOptions = SensorsDataAPI.getConfigOptions();
         if (configOptions.mSSLSocketFactory != null && connection instanceof HttpsURLConnection) {
             ((HttpsURLConnection) connection).setSSLSocketFactory(configOptions.mSSLSocketFactory);
@@ -136,6 +138,7 @@ public class HttpNetWork {
         connection.setRequestMethod(httpDataBean.getRequestMethod().name());
         connection.setConnectTimeout(5 * 1000);
         connection.setReadTimeout(5 * 1000);
+        connection.connect();//连接
     }
 
     private String getQuery(HttpDataBean httpDataBean, String gzip, HttpURLConnection connection) throws InvalidDataException {
