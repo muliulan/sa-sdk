@@ -66,13 +66,13 @@ public class HttpNetWork {
             String query = getQuery(httpDataBean, gzip, connection);
             connectionConfig(connection, query, httpDataBean);
 
-//            out = connection.getOutputStream();
-//            bout = new PrintWriter(out);
-//            bout.write(query);
-//            bout.flush();
-
             out = connection.getOutputStream();
-            out.write(query.getBytes());
+            bout = new PrintWriter(out);
+            bout.write(query);
+            bout.flush();
+//
+//            out = connection.getOutputStream();
+//            out.write(query.getBytes());
 
             int responseCode = connection.getResponseCode();
             SALog.i(TAG, "responseCode: " + responseCode);
@@ -132,13 +132,15 @@ public class HttpNetWork {
         if (configOptions.mSSLSocketFactory != null && connection instanceof HttpsURLConnection) {
             ((HttpsURLConnection) connection).setSSLSocketFactory(configOptions.mSSLSocketFactory);
         }
-        connection.setInstanceFollowRedirects(false);
-        connection.setFixedLengthStreamingMode(query.length());
-        connection.setDoOutput(true);
+//        connection.setInstanceFollowRedirects(false);
+//        connection.setFixedLengthStreamingMode(query.length());
+//        connection.setDoOutput(true);
         connection.setRequestMethod(httpDataBean.getRequestMethod().name());
         connection.setConnectTimeout(5 * 1000);
         connection.setReadTimeout(5 * 1000);
-        connection.connect();//连接
+        connection.setDoOutput(true);
+        connection.setDoInput(true);
+        connection.setUseCaches(false);
     }
 
     private String getQuery(HttpDataBean httpDataBean, String gzip, HttpURLConnection connection) throws InvalidDataException {
